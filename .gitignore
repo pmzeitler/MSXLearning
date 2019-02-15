@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+dsk/COMMAND2.COM
+dsk/MSXDOS2.SYS
+Makefile
+build/
+fusion-c/
+Tools/
