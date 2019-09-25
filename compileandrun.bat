@@ -11,7 +11,7 @@ SET DEST=dsk\
 SET SRCDIR=src\
 SET OUTDIR=build\
 SET OPENMSXDIR=D:\Applications\OpenMSX\
-SET MSXVMACHINE=Philips_NMS_8255
+SET MSXVMACHINE=Panasonic_FS-A1WSX
 
 SET INCLUDEDIR=fusion-c\include\
 SET LIBDIR=fusion-c\lib\
@@ -87,10 +87,10 @@ copy %OUTDIR%%proga%.com DSK\%proga%.com /y
 
 
 :_end_
+echo Starting emulation...
 
 :Emulator
-REM echo Starting emulation...
-REM %OPENMSXDIR%openmsx.exe -machine %MSXVMACHINE% -ext msxdos2 -diska dsk\
+%OPENMSXDIR%openmsx.exe -machine %MSXVMACHINE% -ext msxdos2 -ext ram512k -diska dsk\
 GOTO _end2_
 
 :_badend_
