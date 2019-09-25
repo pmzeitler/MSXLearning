@@ -15,6 +15,7 @@ SET MSXVMACHINE=Panasonic_FS-A1WSX
 
 SET INCLUDEDIR=fusion-c\include\
 SET LIBDIR=fusion-c\lib\
+SET HEADERDIR=fusion-c\header\
 
 SET proga=%1
 
@@ -64,7 +65,7 @@ SET ADDR_DATA=0x0
 
 
 
-SDCC --code-loc %ADDR_CODE% --data-loc %ADDR_DATA% --disable-warning 196 -mz80 --no-std-crt0 --opt-code-size fusion.lib -L %LIBDIR% -o %OUTDIR% %INC1% %INC2% %INC3% %INC4% %INC5% %INC6% %INC7% %INC8% %INC9% %INCA% %INCB% %INCC% %INCD% %INCE% %INCF% %SRCDIR%%proga%.c
+SDCC --code-loc %ADDR_CODE% --data-loc %ADDR_DATA% --disable-warning 196 -mz80 --no-std-crt0 --opt-code-size fusion.lib -L %LIBDIR% -o %OUTDIR% -I %HEADERDIR% %INC1% %INC2% %INC3% %INC4% %INC5% %INC6% %INC7% %INC8% %INC9% %INCA% %INCB% %INCC% %INCD% %INCE% %INCF% %SRCDIR%%proga%.c
 
 
 
