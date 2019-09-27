@@ -32,6 +32,7 @@ del %OUTDIR%%proga%.noi
 del %OUTDIR%%proga%.sym
 del %OUTDIR%%proga%.rel
 
+
 :_clean_
 
 REM  Standard crt0
@@ -89,6 +90,12 @@ copy %OUTDIR%%proga%.com DSK\%proga%.com /y
 
 :_end_
 echo Starting emulation...
+
+IF NOT EXIST DSK\autoexec.bat GOTO _autoexec_
+del DSK\autoexec.bat
+
+:_autoexec_
+echo %proga% >DSK\autoexec.bat
 
 :Emulator
 %OPENMSXDIR%openmsx.exe -machine %MSXVMACHINE% -ext msxdos2 -ext ram512k -diska dsk\
