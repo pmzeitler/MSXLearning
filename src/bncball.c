@@ -39,9 +39,9 @@ void FT_SpriteDef(void)
 	
 	char mypalette[] = {
 		0, 0,0,0,
-		1, 2,1,1,
-		2, 6,5,4,
-		3, 5,4,3,
+		1, 7,0,0,
+		2, 0,7,0,
+		3, 0,0,7,
 		4, 5,5,3,
 		5, 6,5,3,
 		6, 7,6,4,
@@ -53,7 +53,7 @@ void FT_SpriteDef(void)
 		12, 5,3,2,
 		13, 3,3,2,
 		14, 3,1,0,
-		15, 6,6,6
+		15, 0,0,0
 	};
 	
 	int i;
@@ -95,17 +95,24 @@ void FT_SpriteDef(void)
     0b00111100,
     0b00000000
 };
-  char BallColors[8]= {15,8,8,8,8,8,8,15};
-  char Ball2Colors[8]= {1,1,4,4,4,4,4,1};
+  char BallColors[8]= {15,1,1,1,1,1,1,15};
+  char Ball2Colors[8]= {0,0,2,2,2,2,2,0};
   char BoardColors[8]={15,15,15,15,15,15,15,15};
 
   // Building Sprites
   SpriteReset();
   SpriteSmall();
+  
+  //Sprites are not *just* patterns. 
+  //Patterns are the pixel configurations. 
+  //You can have a lot of patterns.
   SetSpritePattern(0, board_pattern,8);
   SetSpritePattern(1, ball_pattern,8);
   SetSpritePattern(2, ball2_pattern,8);
 
+  //Patterns are not sprites.
+  //Putting a sprite on-screen means fitting a pattern into a sprite slot.
+  //On screens 5 and 8 this means you need to define the colors for the sprites.
   SC5SpriteColors(0,BallColors);
   //SC5SpriteColors(1,BoardColors);
   //SC5SpriteColors(2,BoardColors);
@@ -120,11 +127,11 @@ void InitGameData(void) {
 	y = 20;
 	dx = 1;
 	dy = 1;
-	x = 230;
-	y = 180;
-	dx = -1;
-	dy = -1;
-	border=8;
+	x2 = 40;
+	y2 = 20;
+	dx2 = -3;
+	dy2 = -1;
+	border=15;
 }
 
 void UpdateGameData(void) {
@@ -166,8 +173,10 @@ void UpdateGameData(void) {
 }
 
 void DrawGameData(void) {
-	PutSprite(0,1,x,y,10);
-	PutSprite(1,2,x,y,3);
+	//put pattern 1 into sprite slot 0 with color 1 at x,y
+	PutSprite(0,1,x,y,1);
+	//put pattern 2 into sprite slot 1 with color 2 at x2,y2
+	PutSprite(1,2,x2,y2,2);
 }
 
 void main(void) {
@@ -175,9 +184,9 @@ void main(void) {
   SetColors(0,0,1);
   InitPSG();
   SpriteOn();
-  SetSC5Palette((Palette *)palette);
   Screen(5);
-  SetColors(1,1,border);
+  SetSC5Palette((Palette *)palette);
+  SetColors(15,15,border);
 
   KeySound(0);
   VDP60Hz();
