@@ -7,7 +7,9 @@
 
 #define HALT __asm halt __endasm
 
-char border;
+int border;
+int fg;
+int bg;
 int x;
 int y;
 int dx;
@@ -16,8 +18,9 @@ int x2;
 int y2;
 int dx2;
 int dy2;
+int staticDataChanged;
 
-char palette[60];
+char palette[64];
 
 const int XMIN=0;
 const int XMAX=256;
@@ -34,15 +37,18 @@ void WaitCycles(int cycles) {
 	return;
 } 
 
-void FT_SpriteDef(void)
-{
+void InitPalette(void) {
 	
-	char mypalette[] = {
+	fg=15;
+	bg=4;
+	border=2;
+	
+		char mypalette[] = {
 		0, 0,0,0,
 		1, 7,0,0,
 		2, 0,7,0,
 		3, 0,0,7,
-		4, 5,5,3,
+		4, 0,0,0,
 		5, 6,5,3,
 		6, 7,6,4,
 		7, 3,2,1,
@@ -53,7 +59,7 @@ void FT_SpriteDef(void)
 		12, 5,3,2,
 		13, 3,3,2,
 		14, 3,1,0,
-		15, 0,0,0
+		15, 7,7,7
 	};
 	
 	int i;
@@ -61,6 +67,13 @@ void FT_SpriteDef(void)
 		palette[i] = mypalette[i];
 	}
 	
+}
+
+
+void FT_SpriteDef(void)
+{
+	
+
   // Sprites Definition Patterns
 //
  unsigned char board_pattern[]={
@@ -96,7 +109,7 @@ void FT_SpriteDef(void)
     0b00000000
 };
   char BallColors[8]= {15,1,1,1,1,1,1,15};
-  char Ball2Colors[8]= {0,0,2,2,2,2,2,0};
+  char Ball2Colors[8]= {0,0,3,3,3,3,3,0};
   char BoardColors[8]={15,15,15,15,15,15,15,15};
 
   // Building Sprites
@@ -127,11 +140,10 @@ void InitGameData(void) {
 	y = 20;
 	dx = 1;
 	dy = 1;
-	x2 = 40;
-	y2 = 20;
+	x2 = 34;
+	y2 = 24;
 	dx2 = -3;
 	dy2 = -1;
-	border=15;
 }
 
 void UpdateGameData(void) {
@@ -172,7 +184,20 @@ void UpdateGameData(void) {
 	
 }
 
+void DrawStaticData(void) {
+	if (staticDataChanged > 0) {
+		Cls();
+		
+		PutText(10,10,"More Stuff",LOGICAL_TIMP);
+		PutText(15,15,"Stuff",LOGICAL_TIMP);
+		
+		staticDataChanged = 0;
+	}
+}
+
 void DrawGameData(void) {
+	//Locate(10,10);
+	
 	//put pattern 1 into sprite slot 0 with color 1 at x,y
 	PutSprite(0,1,x,y,1);
 	//put pattern 2 into sprite slot 1 with color 2 at x2,y2
@@ -181,12 +206,16 @@ void DrawGameData(void) {
 
 void main(void) {
   printf("Loading, please wait...\n");
-  SetColors(0,0,1);
+  //SetColors(0,0,1);
   InitPSG();
   SpriteOn();
   Screen(5);
+  
+  InitPalette();
   SetSC5Palette((Palette *)palette);
-  SetColors(15,15,border);
+  SetColors(fg,bg,border);
+  
+  staticDataChanged = 1;
 
   KeySound(0);
   VDP60Hz();
@@ -194,10 +223,13 @@ void main(void) {
   
   InitGameData();
   FT_SpriteDef();
+  
+  
   Cls();
   
   while(1) {
 	  UpdateGameData();
+	  DrawStaticData();
 	  DrawGameData();
 	  WaitCycles(DELAY);
   }
