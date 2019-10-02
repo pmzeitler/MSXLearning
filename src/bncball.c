@@ -40,8 +40,8 @@ void WaitCycles(int cycles) {
 void InitPalette(void) {
 	
 	fg=15;
-	bg=4;
-	border=2;
+	bg=0;
+	border=4;
 	
 		char mypalette[] = {
 		0, 0,0,0,
@@ -76,17 +76,6 @@ void FT_SpriteDef(void)
 
   // Sprites Definition Patterns
 //
- unsigned char board_pattern[]={
-  0b11111111,
-  0b11111111,
-  0b11111111,
-  0b11111111,
-  0b11111111,
-  0b00000000,
-  0b00000000,
-  0b00000000
-};
-
  unsigned char ball_pattern[]={
     0b00111100,
     0b01111110,
@@ -110,7 +99,7 @@ void FT_SpriteDef(void)
 };
   char BallColors[8]= {15,1,1,1,1,1,1,15};
   char Ball2Colors[8]= {0,0,3,3,3,3,3,0};
-  char BoardColors[8]={15,15,15,15,15,15,15,15};
+  
 
   // Building Sprites
   SpriteReset();
@@ -119,7 +108,6 @@ void FT_SpriteDef(void)
   //Sprites are not *just* patterns. 
   //Patterns are the pixel configurations. 
   //You can have a lot of patterns.
-  SetSpritePattern(0, board_pattern,8);
   SetSpritePattern(1, ball_pattern,8);
   SetSpritePattern(2, ball2_pattern,8);
 
@@ -127,9 +115,6 @@ void FT_SpriteDef(void)
   //Putting a sprite on-screen means fitting a pattern into a sprite slot.
   //On screens 5 and 8 this means you need to define the colors for the sprites.
   SC5SpriteColors(0,BallColors);
-  //SC5SpriteColors(1,BoardColors);
-  //SC5SpriteColors(2,BoardColors);
-  //SC5SpriteColors(3,BoardColors);
   SC5SpriteColors(1,Ball2Colors);
 
 
