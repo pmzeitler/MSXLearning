@@ -97,6 +97,19 @@ void FT_SpriteDef(void)
     0b00111100,
     0b00000000
 };
+
+unsigned char jagged_pattern[]={
+	0b00000000,
+    0b01010010,
+    0b00101000,
+    0b00010100,
+    0b01001010,
+    0b00100100,
+    0b01010010,
+    0b00000000
+};
+
+
   char BallColors[8]= {15,1,1,7,7,1,1,15};
   char Ball2Colors[8]= {0,0,3,3,3,3,3,0};
   
@@ -110,6 +123,14 @@ void FT_SpriteDef(void)
   //You can have a lot of patterns.
   SetSpritePattern(1, ball_pattern,8);
   SetSpritePattern(2, ball2_pattern,8);
+
+  //position 100 in the pattern table
+  VpokeFirst(0x0800);
+  int i;
+  for(i = 0; i<8; i++) {
+	  VpokeNext(jagged_pattern[i]);
+  }
+
 
   //Patterns are not sprites.
   //Putting a sprite on-screen means fitting a pattern into a sprite slot.
@@ -173,9 +194,16 @@ void DrawStaticData(void) {
 	if (staticDataChanged > 0) {
 		Cls();
 		
-		PutText(10,10,"More Stuff",LOGICAL_TIMP);
-		PutText(15,15,"Stuff",LOGICAL_TIMP);
+		//PutText(10,10,"More Stuff",LOGICAL_TIMP);
+		//PutText(15,15,"Stuff",LOGICAL_TIMP);
 		
+		//767 tiles per page
+		VpokeFirst(0x1800);
+			int i;
+			for(i = 0; i<767; i++) {
+				//palette[i] = mypalette[i];
+				VpokeNext(100);
+			}
 		staticDataChanged = 0;
 	}
 }
@@ -185,8 +213,8 @@ void DrawGameData(void) {
 	
 	//put pattern 1 into sprite slot 0 with color 1 at x,y
 	PutSprite(0,1,x,y,1);
-	//put pattern 2 into sprite slot 1 with color 2 at x2,y2
-	PutSprite(1,2,x2,y2,2);
+	//put pattern 2 into sprite slot 1 with color 3 at x2,y2
+	PutSprite(1,2,x2,y2,3);
 }
 
 void main(void) {
@@ -194,7 +222,7 @@ void main(void) {
   //SetColors(0,0,1);
   InitPSG();
   SpriteOn();
-  Screen(5);
+  Screen(4);
   
   InitPalette();
   SetSC5Palette((Palette *)palette);
