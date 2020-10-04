@@ -1,0 +1,140 @@
+new
+100 rem Pattern Poke Testing - MSX Tinkering
+110 rem Phoebe Zeitler 3 October 2020
+120 beep
+130 color 15,1,1
+140 cls
+150 screen 2
+rem // The array c() contains the eight color palettes 
+rem // that will be used for the display. 
+160 color 15,1:cls: dim c(8)
+rem // We are here reading in the first sixteen bytes 
+rem // of data which correspond to patterns zero and 
+rem // one, and placing them in the appropriate pattern
+rem // tables in memory.
+170 play "T90L4C" : for i = 0 to 15
+rem // As we are loading these into display for the 
+rem // whole screen, we will load the pattern bytes
+rem // into all three pattern tables at once.
+rem // The storage-pattern table starts at 0000 (0x0000)
+rem // and is sized at 6144 bytes (0x1800). It is divided
+rem // into 3 sections of 2048 bytes (0x800) each:
+rem // top        (0x0000-0x07FF),
+rem // middle     (0x0800-0x0FFF),
+rem // and bottom (0x1000-0x17FF).
+rem // Each section of the storage-pattern table is 
+rem // further divided into eight-byte tiles, which ends
+rem // up creating 256 tiles per section.
+rem // So, for example, in the top section, pattern zero
+rem // (or tile zero) is located at 0x0000-0x0007, while
+rem // pattern/tile one is at 0x0008-0x000F, and so on.
+rem // It is important to note that each tile carries its
+rem // color data with it. These colors are defined in 
+rem // the color table, below.
+180 read a : vpoke i,a : vpoke i+2048,a : vpoke i+4096,a
+190 next
+rem // Here we are loading the eight color palettes 
+rem // into the array c() that we defined on line 160.
+rem // They will be loaded into the VRAM shortly.
+200 for i = 0 to 7 : read d : c(i) = d : next
+210 i = 6144 : play "L4DRDR"
+rem // The render-pattern table starts at 6144 (0x1800)
+rem // and is sized at 768 bytes (0x300). It is divided
+rem // into 3 sections of 256 bytes (0x100) each: 
+rem // top        (0x000-0x0FF/0x1800-0x18FF),
+rem // middle     (0x100-0x1FF/0x1900-0x19FF),
+rem // and bottom (0x200-0x2FF/0x1A00-0x1AFF).
+rem // Each render-pattern table can only reference the
+rem // tiles in its corresponding storage-pattern table.
+rem // So if we placed the value 15 (0x0E) in the top
+rem // section's position 0 (0x000/0x1800), the screen 
+rem // would show tile 15 of the top storage-pattern
+rem // table at position (0,0). The same 15 stored in 
+rem // the middle position 0 (0x100/0x1900) would only
+rem // display the same pattern as the top section if
+rem // the values for the top and middle storage-pattern
+rem // sections were identical at the 15th tile. If they
+rem // were different, then a different pattern would be
+rem // displayed at (0,8) than is at (0,0).
+rem // For Screen 2, the tile resolution is 32 wide by
+rem // 8 tall for each section, or 32 wide by 24 tall in
+rem // total.
+rem // It is important to note that each tile carries its
+rem // color data with it. These colors are defined in 
+rem // the color table, below.
+220 if i > 6144+767 goto 260
+rem // Here we are just alternating patterns 0 and 1 to 
+rem // display.
+230 vpoke i,0:vpoke i+1,1
+240 i = i+2
+250 goto 220
+rem // Now we are able to load color data into the  
+rem // color-pattern table, or just color table. 
+rem // The color table starts at 8192 (0x2000) and is
+rem // sized at 6144 bytes (0x1800). This is the least 
+rem // intuitive part of the MSX video system, so it 
+rem // needs to go into some detail.
+rem // Much like the storage-pattern and render-pattern
+rem // tables, the color table is split into 3 sections,
+rem // but the important difference is that the color
+rem // table assigns its colors to the TILES used.
+rem // Each section is sized at 2048 bytes (0x800):
+rem // top        (0x0000-0x07FF/0x2000-0x27FF),
+rem // middle     (0x0800-0x0FFF/0x2800-0x2FFF),
+rem // and bottom (0x1000-0x17FF/0x3000-0x37FF).
+rem // Based on its position in the memory map it would be
+rem // easy to assume that the sections of the color table
+rem // apply to the sections of the render-pattern table.
+rem // This is not true. Rather, each section of the color
+rem // table corresponds to the STORAGE-pattern table. So,
+rem // rather than applying a palette to a region of the
+rem // screen, we are instead creating a palette for the 
+rem // tiles themselves, so that they appear uniform even
+rem // if they appear somewhere unexpected.
+rem // Each eight bytes corresponds to one tile. Within 
+rem // those bytes, each byte corresponds to a line of the
+rem // tile. Within each of THOSE bytes, the top nibble
+rem // (4 bits) represents the indexed color for a "1"
+rem // bit in the tile's pattern data for that byte, while 
+rem // the lower nibble represents the color for a "0".
+rem // So if we had defined color 1 as black and color 15
+rem // as white, a color byte of 0xF1 would have 1s as 
+rem // white and 0s as black.
+rem // This means that each tile can use all 16 colors, 
+rem // but only 2 for each line. 
+rem // This routine goes overkill in defining palettes for
+rem // literally every tile, even the ones we don't have
+rem // any data defined for.
+260 play "L4ERERL1E" : for i=8192 to 14435 step 32
+270 for j = 0 to 7 : vpoke i+j,c(j) : next : for j = 7 to 0 step -1 : vpoke 8+i+(7-j),c(j) : next : for j = 0 to 7 : vpoke 16+i+j,&b11110001 : next : for j = 0 to 7 : vpoke 24+i+j,&b00011111 : next
+280 next
+290 a$ = inkey$
+300 if a$ = "" then goto 290
+310 end
+320 rem pattern zero
+330 data &b11111111
+340 data &b10011001
+350 data &b10111101
+360 data &b11100111
+370 data &b11100111
+380 data &b10111101
+390 data &b10011001
+400 data &b11111111
+410 rem pattern one
+420 data &b00011000
+430 data &b00110000
+440 data &b01100000
+450 data &b11000000
+460 data &b10000001
+470 data &b00000011
+480 data &b00000110
+490 data &b00001100
+500 rem color values
+510 data &b11110001
+520 data &b00100001
+530 data &b00110001
+540 data &b01000001
+550 data &b01010001
+560 data &b01100001
+570 data &b01110001
+580 data &b10000001
