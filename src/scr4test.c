@@ -217,6 +217,79 @@ void DrawGameData(void) {
 	PutSprite(1,2,x2,y2,3);
 }
 
+const unsigned int PATTERN_BASE = 0x0000;
+const unsigned int PALETTE_BASE = 0x2000;
+const unsigned int SECTION_SIZE = 0x0800;
+const unsigned int PATTERN_SIZE = 0x0008;
+
+const unsigned char TOP_SECTION = 0x01;
+const unsigned char MID_SECTION = 0x02;
+const unsigned char BOT_SECTION = 0x04;
+
+void assignBGTile(unsigned char section, unsigned char index, unsigned char patternData[], unsigned char paletteData[]) {
+	if (section < 0 || section > 7) {
+		//Invalid section code
+		return;
+	}
+	unsigned int patternAddressBase = PATTERN_BASE + (index * PATTERN_SIZE);
+	unsigned int paletteAddressBase = PALETTE_BASE + (index * PATTERN_SIZE);
+	
+	if ((TOP_SECTION & section) == TOP_SECTION) {
+		setPatternAtVAddress(patternAddressBase, patternData);
+		setPatternAtVAddress(paletteAddressBase, paletteData);
+	}
+	
+	if ((MID_SECTION & section) == MID_SECTION) {
+		setPatternAtVAddress((patternAddressBase + SECTION_SIZE), patternData);
+		setPatternAtVAddress((paletteAddressBase + SECTION_SIZE), paletteData);
+	}
+	
+	if ((BOT_SECTION & section) == BOT_SECTION) {
+		setPatternAtVAddress((patternAddressBase + (2 * SECTION_SIZE)), patternData);
+		setPatternAtVAddress((paletteAddressBase + (2 * SECTION_SIZE)), paletteData);
+	}
+}
+
+void setPatternAtVAddress(unsigned int address0, unsigned char data[]) {
+	VPokeFirst(address0);
+	VPokeNext(data[0]);
+	VPokeNext(data[1]);
+	VPokeNext(data[2]);
+	VPokeNext(data[3]);
+	VPokeNext(data[4]);
+	VPokeNext(data[5]);
+	VPokeNext(data[6]);
+	VPokeNext(data[7]);
+}
+
+const unsigned int NAME_TABLE_BASE = 0x1800;
+
+void setBGTileAt(int x, int y, unsigned char index) {
+	//x min 0 max 31
+	//y min 0 max 23
+	
+	unsigned int nameTableOffset = 0;
+	if ( y > 23 ) {
+		//invalid y value
+		return;
+	} else if ( y < 0 ) {
+		//invalid y value
+		return;
+	}
+	if ( x > 31 ) {
+		//invalid x value
+		return;
+	} else if ( x < 0 ) {
+		//invalid x value
+		return;
+	}
+	//calculate line offset
+	nameTableOffset = y * 32;
+	nameTableOffset += x;
+	
+	VPoke(NAME_TABLE_BASE + nameTableOffset, index);
+}
+
 void main(void) {
   printf("Loading, please wait...\n");
   //SetColors(0,0,1);
@@ -224,8 +297,8 @@ void main(void) {
   SpriteOn();
   Screen(4);
   
-  InitPalette();
-  SetSC5Palette((Palette *)palette);
+  //InitPalette();
+  //SetSC5Palette((Palette *)palette);
   SetColors(fg,bg,border);
   
   staticDataChanged = 1;
