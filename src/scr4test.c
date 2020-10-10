@@ -7,9 +7,9 @@
 
 #define HALT __asm halt __endasm
 
-int border;
-int fg;
-int bg;
+int border = 1;
+int fg = 15;
+int bg = 1;
 int x;
 int y;
 int dx;
@@ -28,6 +28,74 @@ const int YMIN=0;
 const int YMAX=212;
 
 const int DELAY=1;
+
+const unsigned int PATTERN_BASE = 0x0000;
+const unsigned int PALETTE_BASE = 0x2000;
+const unsigned int SECTION_SIZE = 0x0800;
+const unsigned int PATTERN_SIZE = 0x0008;
+
+const unsigned char TOP_SECTION = 0x01;
+const unsigned char MID_SECTION = 0x02;
+const unsigned char BOT_SECTION = 0x04;
+
+const unsigned int NAME_TABLE_BASE = 0x1800;
+const unsigned int NAME_TABLE_SIZE = 0x300;
+
+void setPatternAtVAddress(unsigned int address0, unsigned char data[]) {
+	VpokeFirst(address0);
+	VpokeNext(data[0]);
+	VpokeNext(data[1]);
+	VpokeNext(data[2]);
+	VpokeNext(data[3]);
+	VpokeNext(data[4]);
+	VpokeNext(data[5]);
+	VpokeNext(data[6]);
+	VpokeNext(data[7]);
+}
+
+void assignBGTile(unsigned char section, unsigned char index, unsigned char patternData[], unsigned char paletteData[]) {
+	if (section > 7) {
+		//Invalid section code
+		return;
+	}
+	unsigned int patternAddressBase = PATTERN_BASE + (index * PATTERN_SIZE);
+	unsigned int paletteAddressBase = PALETTE_BASE + (index * PATTERN_SIZE);
+	
+	if ((TOP_SECTION & section) == TOP_SECTION) {
+		setPatternAtVAddress(patternAddressBase, patternData);
+		setPatternAtVAddress(paletteAddressBase, paletteData);
+	}
+	
+	if ((MID_SECTION & section) == MID_SECTION) {
+		setPatternAtVAddress((patternAddressBase + SECTION_SIZE), patternData);
+		setPatternAtVAddress((paletteAddressBase + SECTION_SIZE), paletteData);
+	}
+	
+	if ((BOT_SECTION & section) == BOT_SECTION) {
+		setPatternAtVAddress((patternAddressBase + (2 * SECTION_SIZE)), patternData);
+		setPatternAtVAddress((paletteAddressBase + (2 * SECTION_SIZE)), paletteData);
+	}
+}
+
+void setBGTileAt(unsigned int x, unsigned int y, unsigned char index) {
+	//x min 0 max 31
+	//y min 0 max 23
+	
+	unsigned int nameTableOffset = 0;
+	if ( y > 23 ) {
+		//invalid y value
+		return;
+	} 
+	if ( x > 31 ) {
+		//invalid x value
+		return;
+	} 
+	//calculate line offset
+	nameTableOffset = y * 32;
+	nameTableOffset += x;
+	
+	Vpoke(NAME_TABLE_BASE + nameTableOffset, index);
+}
 
 void WaitCycles(int cycles) {
 	int i;
@@ -141,6 +209,179 @@ unsigned char jagged_pattern[]={
 
 }
 
+// Planeswalker symbol
+// 1230
+// 4560
+// 0700
+// 0000
+
+void InitPatternData(void) {
+	unsigned char planeswalker_pattern_1[]={
+		0b00000000,
+		0b00000000,
+		0b01000001,
+		0b01100001,
+		0b11100011,
+		0b11110011,
+		0b11111011,
+		0b11111111
+	};
+	
+	unsigned char planeswalker_pattern_2[]={
+		0b00010000,
+		0b00011000,
+		0b00011001,
+		0b11011001,
+		0b11011101,
+		0b11011101,
+		0b11111111,
+		0b11111111
+	};
+	unsigned char planeswalker_pattern_3[]={
+		0b00000000,
+		0b00000000,
+		0b00000010,
+		0b11000110,
+		0b11000111,
+		0b11001111,
+		0b11011111,
+		0b11111111
+	};
+	unsigned char planeswalker_pattern_4[]={
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b01111111,
+		0b00111111,
+		0b00001111,
+		0b00000011,
+		0b00000001
+	};
+	unsigned char planeswalker_pattern_6[]={
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111110,
+		0b11111100,
+		0b11110000,
+		0b11000000,
+		0b10000000
+	};
+	unsigned char planeswalker_pattern_5[]={
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111
+	};
+	unsigned char planeswalker_pattern_0[]={
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000
+	};
+	unsigned char planeswalker_pattern_7[]={
+		0b11111111,
+		0b01111110,
+		0b01111110,
+		0b00111100,
+		0b00111100,
+		0b00111000,
+		0b00011000,
+		0b00010000
+	};
+	
+	unsigned char planeswalker_palette_1[] = {
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81
+	};
+	unsigned char planeswalker_palette_2[] = {
+		0x61,
+		0x61,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81
+	};
+	unsigned char planeswalker_palette_3[] = {
+		0xB1,
+		0xB1,
+		0x61,
+		0x61,
+		0x81,
+		0x81,
+		0x81,
+		0x81
+	};
+	unsigned char planeswalker_palette_4[] = {
+		0xA1,
+		0xA1,
+		0xB1,
+		0xB1,
+		0x61,
+		0x61,
+		0x81,
+		0x81
+	};
+	unsigned char planeswalker_palette_5[] = {
+		0x81,
+		0x81,
+		0xA1,
+		0xA1,
+		0xB1,
+		0xB1,
+		0x61,
+		0x61
+	};
+	unsigned char planeswalker_palette_7[] = {
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0xA1,
+		0xA1,
+		0xB1,
+		0xB1
+	};
+	unsigned char planeswalker_palette_8[] = {
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0x81,
+		0xA1,
+		0xA1
+	};
+	unsigned char ALL_SECTIONS = TOP_SECTION | MID_SECTION | BOT_SECTION;
+	
+	assignBGTile(ALL_SECTIONS, 0, planeswalker_pattern_0, planeswalker_palette_1);
+	
+	assignBGTile(ALL_SECTIONS, 1, planeswalker_pattern_1, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 2, planeswalker_pattern_2, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 3, planeswalker_pattern_3, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 4, planeswalker_pattern_4, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 5, planeswalker_pattern_5, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 6, planeswalker_pattern_6, planeswalker_palette_1);
+	assignBGTile(ALL_SECTIONS, 7, planeswalker_pattern_7, planeswalker_palette_1);
+	
+}
+
 void InitGameData(void) {
 	x = 30;
 	y = 20;
@@ -190,23 +431,33 @@ void UpdateGameData(void) {
 	
 }
 
+void SetAllBGTiles(unsigned char index) {
+	FillVram(NAME_TABLE_BASE, index, NAME_TABLE_SIZE);
+}
+
+void ClearAllBGTiles() {
+	SetAllBGTiles(0);
+}
+
 void DrawStaticData(void) {
 	if (staticDataChanged > 0) {
-		Cls();
+		//Cls();
 		
+		ClearAllBGTiles();
 		//PutText(10,10,"More Stuff",LOGICAL_TIMP);
 		//PutText(15,15,"Stuff",LOGICAL_TIMP);
+		setBGTileAt(0,0,1);
+		setBGTileAt(1,0,2);
+		setBGTileAt(2,0,3);
+		setBGTileAt(0,1,4);
+		setBGTileAt(1,1,5);
+		setBGTileAt(2,1,6);
+		setBGTileAt(1,2,7);
 		
-		//767 tiles per page
-		VpokeFirst(0x1800);
-			int i;
-			for(i = 0; i<767; i++) {
-				//palette[i] = mypalette[i];
-				VpokeNext(100);
-			}
 		staticDataChanged = 0;
 	}
 }
+
 
 void DrawGameData(void) {
 	//Locate(10,10);
@@ -217,106 +468,36 @@ void DrawGameData(void) {
 	PutSprite(1,2,x2,y2,3);
 }
 
-const unsigned int PATTERN_BASE = 0x0000;
-const unsigned int PALETTE_BASE = 0x2000;
-const unsigned int SECTION_SIZE = 0x0800;
-const unsigned int PATTERN_SIZE = 0x0008;
-
-const unsigned char TOP_SECTION = 0x01;
-const unsigned char MID_SECTION = 0x02;
-const unsigned char BOT_SECTION = 0x04;
-
-void assignBGTile(unsigned char section, unsigned char index, unsigned char patternData[], unsigned char paletteData[]) {
-	if (section < 0 || section > 7) {
-		//Invalid section code
-		return;
-	}
-	unsigned int patternAddressBase = PATTERN_BASE + (index * PATTERN_SIZE);
-	unsigned int paletteAddressBase = PALETTE_BASE + (index * PATTERN_SIZE);
-	
-	if ((TOP_SECTION & section) == TOP_SECTION) {
-		setPatternAtVAddress(patternAddressBase, patternData);
-		setPatternAtVAddress(paletteAddressBase, paletteData);
-	}
-	
-	if ((MID_SECTION & section) == MID_SECTION) {
-		setPatternAtVAddress((patternAddressBase + SECTION_SIZE), patternData);
-		setPatternAtVAddress((paletteAddressBase + SECTION_SIZE), paletteData);
-	}
-	
-	if ((BOT_SECTION & section) == BOT_SECTION) {
-		setPatternAtVAddress((patternAddressBase + (2 * SECTION_SIZE)), patternData);
-		setPatternAtVAddress((paletteAddressBase + (2 * SECTION_SIZE)), paletteData);
-	}
-}
-
-void setPatternAtVAddress(unsigned int address0, unsigned char data[]) {
-	VPokeFirst(address0);
-	VPokeNext(data[0]);
-	VPokeNext(data[1]);
-	VPokeNext(data[2]);
-	VPokeNext(data[3]);
-	VPokeNext(data[4]);
-	VPokeNext(data[5]);
-	VPokeNext(data[6]);
-	VPokeNext(data[7]);
-}
-
-const unsigned int NAME_TABLE_BASE = 0x1800;
-
-void setBGTileAt(int x, int y, unsigned char index) {
-	//x min 0 max 31
-	//y min 0 max 23
-	
-	unsigned int nameTableOffset = 0;
-	if ( y > 23 ) {
-		//invalid y value
-		return;
-	} else if ( y < 0 ) {
-		//invalid y value
-		return;
-	}
-	if ( x > 31 ) {
-		//invalid x value
-		return;
-	} else if ( x < 0 ) {
-		//invalid x value
-		return;
-	}
-	//calculate line offset
-	nameTableOffset = y * 32;
-	nameTableOffset += x;
-	
-	VPoke(NAME_TABLE_BASE + nameTableOffset, index);
-}
-
 void main(void) {
   printf("Loading, please wait...\n");
   //SetColors(0,0,1);
   InitPSG();
-  SpriteOn();
-  Screen(4);
-  
-  //InitPalette();
-  //SetSC5Palette((Palette *)palette);
-  SetColors(fg,bg,border);
-  
-  staticDataChanged = 1;
-
+  //SpriteOn();
   KeySound(0);
   VDP60Hz();
   KillKeyBuffer();
   
-  InitGameData();
-  FT_SpriteDef();
-  
-  
+
+  Screen(4);
   Cls();
   
+  //InitPalette();
+  //SetSC5Palette((Palette *)palette);
+  InitPatternData();
+  SetColors(fg,bg,border);
+  
+  staticDataChanged = 1;
+
+  InitGameData();
+  //FT_SpriteDef();
+  
+  
+  
   while(1) {
-	  UpdateGameData();
+	  //UpdateGameData();
 	  DrawStaticData();
-	  DrawGameData();
+	  //DrawGameData();
 	  WaitCycles(DELAY);
+	  //staticDataChanged = 1;
   }
 }
